@@ -27,44 +27,84 @@ function populateDropdown(playlists){
 function getUserId(){
     spotify.getMe()
         .then(function(data){
-            getSelectedPlaylistLength(data.id);
+            getTracks(data.id);
         }, function(err){
             console.error(err);
         });
 }
 
-function getSelectedPlaylistLength(userId){
-    var playlistId = document.getElementById('dd-playlist').value;
-    spotify.getPlaylist(userId, playlistId)
+function getTracks(userId){
+    var tracks = [];
+
+    var getTracksLoop = function(userId, playlistId){
+        spotify.getPlaylistTracks(userId, playlistId, {limit: 100, offset: tracks.length})
         .then(function(data) {
-            randomizePlaylist(userId, playlistId, data["tracks"]["total"])
+            for (var i in data["items"]){
+                tracks.push("spotify:track:" + data["items"][i]["track"]["id"]);
+            }
+            if (data["next"] != null){
+                getTracksLoop(userId, playlistId);
+            }
+            else{
+                removeTracks(userId, playlistId, tracks);
+            }
         }, function(err) {
             console.error(err);
         });
+    }
+
+    var playlistId = document.getElementById('dd-playlist').value;
+    getTracksLoop(userId, playlistId);
 }
 
-function randomizePlaylist(userId, playlistId, length){
-    var tracks = [];
-    for (var i = 0; i < length; i++) {
-        tracks.push(i);
+function removeTracks(userId, playlistId, tracks){
+    var batches = [];
+    for (i=0, j=tracks.length; i<j; i+=100){
+        var batch = tracks.slice(i, i+100);
+        batches.push(batch);
     }
 
-    var randomTracks = window.knuthShuffle(tracks.slice(0));
-    asyncLoop(0, randomTracks.length, userId, playlistId, randomTracks);
+    var removeTracksLoop = function(userId, playlistId, counter, total){
+        spotify.removeTracksFromPlaylist(userId, playlistId, batches[counter])
+        .then(function(data) {
+            counter++;
+            if (counter < total){
+                removeTracksLoop(userId, playlistId, counter, total);
+            }
+            else{
+                addTracks(userId, playlistId, tracks);
+            }
+        }, function(err) {
+            console.error(err);
+        });
+    }
+
+    removeTracksLoop(userId, playlistId, 0, batches.length);
 }
 
-function asyncLoop(counter, total, userId, playlistId, randomTracks){
-    if (counter < total){
-        spotify.reorderTracksInPlaylist(userId, playlistId, randomTracks[counter], 0)
-            .then(function(data) {
-                counter++;
-                console.log("moved track: " + counter);
-                asyncLoop(counter, total, userId, playlistId, randomTracks)
-            }, function(err) {
-                console.error(err);
-            });
+function addTracks(userId, playlistId, tracks){
+    var randomizedTracks = window.knuthShuffle(tracks.slice(0));
+
+    var batches = [];
+    for (i=0, j=randomizedTracks.length; i<j; i+=100){
+        var batch = randomizedTracks.slice(i, i+100);
+        batches.push(batch);
     }
-    else{
-        console.log("done!");
+
+    var addTracksLoop = function(userId, playlistId, counter, total){
+        spotify.addTracksToPlaylist(userId, playlistId, batches[counter])
+        .then(function(data) {
+            counter++;
+            if (counter < total){
+                addTracksLoop(userId, playlistId, counter, total);
+            }
+            else{
+                console.log("Done!")
+            }
+        }, function(err) {
+            console.error(err);
+        });
     }
+
+    addTracksLoop(userId, playlistId, 0, batches.length);
 }
