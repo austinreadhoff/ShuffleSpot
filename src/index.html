@@ -4,29 +4,31 @@
         <title>Shufflespot</title>
         <link rel="stylesheet" href="/src/css/shufflespot.css">
         <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+        <script src="/../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="/../node_modules/angular/angular.min.js"></script>
         <script src="../node_modules/spotify-web-api-js/src/spotify-web-api.js"></script>
         <script src="../node_modules/knuth-shuffle/index.js"></script>
-        <script src="/src/js/shufflespot.js"></script>
+        <script src="/src/js/mainController.js"></script>
+        <script src="/src/js/mainModule.js"></script>
     </head>
 
-<body>
-    <div class="container">
-        <div id="login">
-            <h1>Please log in to authorize</h1>
-            <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
+    <body>
+        <div class="container" ng-app="main" ng-controller="mainController" ng-cloak>
+            <div id="login">
+                <h1>Please log in to authorize</h1>
+                <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
+            </div>
+            <div id="form-area">
+                <form>
+                    <div class="form-group">
+                        <label for="dd-playlist">Select a Playlist</label>
+                        <select class="form-control" id="dd-playlist">
+                        </select>
+                    </div>
+                    <input type="button" id="submit-button" class="btn btn-primary" onclick="getUserId()" value="Randomize!"/>
+                </form>
+            </div>
         </div>
-        <div id="form-area">
-            <form>
-                <div class="form-group">
-                    <label for="dd-playlist">Select a Playlist</label>
-                    <select class="form-control" id="dd-playlist">
-                    </select>
-                </div>
-                <input type="button" id="submit-button" class="btn btn-primary" onclick="getUserId()" value="Randomize!"/>
-            </form>
-        </div>
-    </div>
-</body>
-
-    <script src="/src/js/auth.js"></script>
-</html>
+    </body>
+    </html>
