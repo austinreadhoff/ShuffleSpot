@@ -15,18 +15,19 @@
 
     <body>
         <div class="container" ng-app="main" ng-controller="mainController" ng-cloak>
-            <div id="login">
+            <div id="login" ng-show="!access_token">
                 <h1>Please log in to authorize</h1>
                 <button id="login-button" class="btn btn-primary">Log in with Spotify</button>
             </div>
-            <div id="form-area">
+            <div id="form-area" ng-show="access_token">
                 <form>
                     <div class="form-group">
                         <label for="dd-playlist">Select a Playlist</label>
-                        <select class="form-control" id="dd-playlist">
+                        <select class="form-control" id="dd-playlist" ng-model="SelectedPlaylist">
+                            <option ng-repeat="p in Playlists" value="{{p.Id}}">{{p.Title}}</option>
                         </select>
                     </div>
-                    <input type="button" id="submit-button" class="btn btn-primary" onclick="getUserId()" value="Randomize!"/>
+                    <input type="button" id="submit-button" class="btn btn-primary" ng-click="getUserId()" value="Randomize!"/>
                 </form>
             </div>
         </div>

@@ -1,26 +1,37 @@
 var spotify = new SpotifyWebApi();
 
 function mainController($scope){
+    $scope.Playlists = [];
+    $scope.SelectedPlaylist = null;
+
+    //called by submit button
+    $scope.getUserId = function(){
+    spotify.getMe()
+        .then(function(data){
+            getTracks($scope, data.id);
+        }, function(err){
+            console.error(err);
+        });
+    }
+
     //boilerplate auth code, provided by the spotify documentation
+    //altered only to add access_token to angular scope
     var stateKey = 'spotify_auth_state';
     var params = getHashParams();
-    var access_token = params.access_token,
-        state = params.state,
-        storedState = localStorage.getItem(stateKey);
-    if (access_token && (state == null || state !== storedState)) {
+    $scope.access_token = params.access_token
+    var state = params.state
+    var storedState = localStorage.getItem(stateKey);
+    if ($scope.access_token && (state == null || state !== storedState)) {
         alert('There was an error during the authentication');
     }
     else {
         localStorage.removeItem(stateKey);
-        if (access_token) {
-            document.getElementById('form-area').style.display = "block";
+        if ($scope.access_token) {
+            spotify.setAccessToken($scope.access_token);
             //actually do stuff
-            setToken(access_token);
             getPlaylists($scope);
         }
-        else {
-            document.getElementById('login').style.display = "block";
-        }
+
         document.getElementById('login-button').addEventListener('click', function() {
         var client_id = '8d8f54edc17e43df94cecb28b5566ee1';
         var redirect_uri = 'http://localhost:8080/src/index.html';
@@ -38,40 +49,22 @@ function mainController($scope){
     }
 }
 
-function setToken(token){
-    spotify.setAccessToken(token);
-}
-
 function getPlaylists($scope){
     spotify.getUserPlaylists()
         .then(function(data) {
-            populateDropdown(data.items);
+            data.items.forEach(function(item){
+                $scope.Playlists.push({
+                    Title: item["name"],
+                    Id: item["id"]
+                });
+            });
+            $scope.$apply();
         }, function(err) {
             console.error(err);
         });
 }
 
-function populateDropdown(playlists){
-    var dropdown = document.getElementById('dd-playlist');
-    for(var p in playlists){
-        var playlist = playlists[p];
-        var option = document.createElement('option');
-        option.value = playlist["id"];
-        option.innerHTML = playlist["name"];
-        dropdown.appendChild(option);
-    }
-}
-
-function getUserId(){
-    spotify.getMe()
-        .then(function(data){
-            getTracks(data.id);
-        }, function(err){
-            console.error(err);
-        });
-}
-
-function getTracks(userId){
+function getTracks($scope, userId){
     var tracks = [];
 
     var getTracksLoop = function(userId, playlistId){
@@ -91,8 +84,7 @@ function getTracks(userId){
         });
     }
 
-    var playlistId = document.getElementById('dd-playlist').value;
-    getTracksLoop(userId, playlistId);
+    getTracksLoop(userId, $scope.SelectedPlaylist);
 }
 
 function removeTracks(userId, playlistId, tracks){
