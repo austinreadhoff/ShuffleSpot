@@ -88,28 +88,12 @@ function getTracks($scope, userId){
 }
 
 function removeTracks(userId, playlistId, tracks){
-    var batches = [];
-    for (i=0, j=tracks.length; i<j; i+=100){
-        var batch = tracks.slice(i, i+100);
-        batches.push(batch);
-    }
-
-    var removeTracksLoop = function(userId, playlistId, counter, total){
-        spotify.removeTracksFromPlaylist(userId, playlistId, batches[counter])
-        .then(function(data) {
-            counter++;
-            if (counter < total){
-                removeTracksLoop(userId, playlistId, counter, total);
-            }
-            else{
-                addTracks(userId, playlistId, tracks);
-            }
-        }, function(err) {
-            console.error(err);
-        });
-    }
-
-    removeTracksLoop(userId, playlistId, 0, batches.length);
+    spotify.replaceTracksInPlaylist(userId, playlistId, [])
+    .then(function(data) {
+        addTracks(userId, playlistId, tracks);
+    }, function(err) {
+        console.error(err);
+    });
 }
 
 function addTracks(userId, playlistId, tracks){
