@@ -3,6 +3,7 @@ var spotify = new SpotifyWebApi();
 function mainController($scope){
     $scope.Playlists = [];
     $scope.SelectedPlaylist = null;
+    $scope.statusMssg = "";
 
     //called by submit button
     $scope.getUserId = function(){
@@ -65,6 +66,7 @@ function getPlaylists($scope){
 }
 
 function getTracks($scope, userId){
+    $scope.statusMssg = "Fetching tracklist..."
     var tracks = [];
 
     var getTracksLoop = function(userId, playlistId){
@@ -77,7 +79,7 @@ function getTracks($scope, userId){
                 getTracksLoop(userId, playlistId);
             }
             else{
-                removeTracks(userId, playlistId, tracks);
+                removeTracks($scope, userId, playlistId, tracks);
             }
         }, function(err) {
             console.error(err);
@@ -87,16 +89,18 @@ function getTracks($scope, userId){
     getTracksLoop(userId, $scope.SelectedPlaylist);
 }
 
-function removeTracks(userId, playlistId, tracks){
+function removeTracks($scope, userId, playlistId, tracks){
+    $scope.statusMssg = "Preparing to shuffle..."
+    $scope.$apply();
     spotify.replaceTracksInPlaylist(userId, playlistId, [])
     .then(function(data) {
-        addTracks(userId, playlistId, tracks);
+        addTracks($scope, userId, playlistId, tracks);
     }, function(err) {
         console.error(err);
     });
 }
 
-function addTracks(userId, playlistId, tracks){
+function addTracks($scope, userId, playlistId, tracks){
     var randomizedTracks = window.knuthShuffle(tracks.slice(0));
 
     var batches = [];
@@ -106,6 +110,8 @@ function addTracks(userId, playlistId, tracks){
     }
 
     var addTracksLoop = function(userId, playlistId, counter, total){
+        $scope.statusMssg = "Shuffling tracks in batches: " + (counter+1) + " out of " + batches.length + "...";
+        $scope.$apply();
         spotify.addTracksToPlaylist(userId, playlistId, batches[counter])
         .then(function(data) {
             counter++;
@@ -113,7 +119,8 @@ function addTracks(userId, playlistId, tracks){
                 addTracksLoop(userId, playlistId, counter, total);
             }
             else{
-                console.log("Done!")
+                $scope.statusMssg = "Done!"
+                $scope.$apply();
             }
         }, function(err) {
             console.error(err);
