@@ -3,6 +3,8 @@ var spotify = new SpotifyWebApi();
 function mainController($scope){
     $scope.Playlists = [];
     $scope.SelectedPlaylist = null;
+    $scope.copyResult = false;
+    $scope.SelectedDestination = null;
     $scope.statusMssg = "";
 
     //called by submit button
@@ -66,7 +68,7 @@ function getPlaylists($scope){
 }
 
 function getTracks($scope, userId){
-    $scope.statusMssg = "Fetching tracklist..."
+    updateStatus($scope, "Fetching tracklist...")
     var tracks = [];
 
     var getTracksLoop = function(userId, playlistId){
@@ -79,7 +81,8 @@ function getTracks($scope, userId){
                 getTracksLoop(userId, playlistId);
             }
             else{
-                removeTracks($scope, userId, playlistId, tracks);
+                targetPlaylist = $scope.copyResult ? $scope.SelectedDestination : $scope.SelectedPlaylist
+                removeTracks($scope, userId, targetPlaylist, tracks);
             }
         }, function(err) {
             console.error(err);
@@ -90,8 +93,7 @@ function getTracks($scope, userId){
 }
 
 function removeTracks($scope, userId, playlistId, tracks){
-    $scope.statusMssg = "Preparing to shuffle..."
-    $scope.$apply();
+    updateStatus($scope, "Preparing to shuffle...");
     spotify.replaceTracksInPlaylist(userId, playlistId, [])
     .then(function(data) {
         addTracks($scope, userId, playlistId, tracks);
@@ -101,7 +103,8 @@ function removeTracks($scope, userId, playlistId, tracks){
 }
 
 function addTracks($scope, userId, playlistId, tracks){
-    var randomizedTracks = window.knuthShuffle(tracks.slice(0));
+    var culledTracks = tracks.filter(t => t != "spotify:track:null");
+    var randomizedTracks = window.knuthShuffle(culledTracks.slice(0));
 
     var batches = [];
     for (i=0, j=randomizedTracks.length; i<j; i+=100){
@@ -110,8 +113,7 @@ function addTracks($scope, userId, playlistId, tracks){
     }
 
     var addTracksLoop = function(userId, playlistId, counter, total){
-        $scope.statusMssg = "Shuffling tracks in batches: " + (counter+1) + " out of " + batches.length + "...";
-        $scope.$apply();
+        updateStatus($scope, "Shuffling tracks in batches: " + (counter+1) + " out of " + batches.length + "...");
         spotify.addTracksToPlaylist(userId, playlistId, batches[counter])
         .then(function(data) {
             counter++;
@@ -119,8 +121,7 @@ function addTracks($scope, userId, playlistId, tracks){
                 addTracksLoop(userId, playlistId, counter, total);
             }
             else{
-                $scope.statusMssg = "Done!"
-                $scope.$apply();
+                updateStatus($scope, "Done!");
             }
         }, function(err) {
             console.error(err);
@@ -130,7 +131,7 @@ function addTracks($scope, userId, playlistId, tracks){
     addTracksLoop(userId, playlistId, 0, batches.length);
 }
 
-//utility auth functions
+//utility functions
 function getHashParams() {
     var hashParams = {};
     var e, r = /([^&;=]+)=?([^&;]*)/g,
@@ -148,4 +149,9 @@ function generateRandomString(length) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
+}
+
+function updateStatus($scope, mssg){
+    $scope.statusMssg = mssg;
+    $scope.$apply();
 }

@@ -26,6 +26,14 @@
                         <select class="form-control" id="dd-playlist" ng-model="SelectedPlaylist">
                             <option ng-repeat="p in Playlists" value="{{p.Id}}">{{p.Title}}</option>
                         </select>
+
+                        <label for="check-copy">Copy shuffled order to a different playlist (preserves original metadata)</label>
+                        <input type="checkbox" id="check-copy" ng-model="copyResult"><br/>
+
+                        <label for="dd-destination">Desination Playlist</label>
+                        <select class="form-control" id="dd-destination" ng-model="SelectedDestination" ng-disabled="!copyResult">
+                            <option ng-repeat="p in Playlists" value="{{p.Id}}">{{p.Title}}</option>
+                        </select>
                     </div>
                     <input type="button" id="submit-button" class="btn btn-primary" ng-click="getUserId()" value="Randomize!"/>
                     <p ng-bind="statusMssg"></p>
