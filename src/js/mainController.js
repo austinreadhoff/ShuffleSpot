@@ -37,7 +37,7 @@ function mainController($scope){
 
         document.getElementById('login-button').addEventListener('click', function() {
         var client_id = '8d8f54edc17e43df94cecb28b5566ee1';
-        var redirect_uri = 'http://localhost:8080/index.html';
+        var redirect_uri = window.location.href + 'index.html';
         var state = generateRandomString(16);
         localStorage.setItem(stateKey, state);
         var scope = 'playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public';
