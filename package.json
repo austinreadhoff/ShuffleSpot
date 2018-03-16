@@ -1,7 +1,7 @@
 {
     "name": "shufflespot",
     "version": "1.0.0",
-    "devDependencies": {
+    "dependencies": {
         "bootstrap": "3.3.7",
         "spotify-web-api-js": "0.21.2",
         "knuth-shuffle": "1.0.1",
