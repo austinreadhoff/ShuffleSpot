@@ -1,2 +1,2 @@
 # ShuffleSpot
-True randomization of spotify playlists
+https://austinread.github.io/ShuffleSpot/
