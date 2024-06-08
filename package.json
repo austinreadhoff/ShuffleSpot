@@ -2,10 +2,14 @@
     "name": "shufflespot",
     "version": "1.0.0",
     "dependencies": {
+        "angular": "1.6.5",
         "bootstrap": "3.3.7",
-        "spotify-web-api-js": "0.21.2",
-        "knuth-shuffle": "1.0.1",
         "jquery": "3.2.1",
-        "angular": "1.6.5"
-    }
+        "knuth-shuffle": "1.0.1",
+        "spotify-web-api-js": "1.5.2"
+    },
+    "devDependencies": {
+        "http-server": "^14.1.1"
+    },
+    "scripts": {"start": "http-server"}
 }
