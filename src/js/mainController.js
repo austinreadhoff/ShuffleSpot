@@ -56,10 +56,12 @@ function getPlaylists($scope){
     spotify.getUserPlaylists()
         .then(function(data) {
             data.items.forEach(function(item){
-                $scope.Playlists.push({
-                    Title: item["name"],
-                    Id: item["id"]
-                });
+                if (item) {
+                    $scope.Playlists.push({
+                        Title: item["name"],
+                        Id: item["id"]
+                    });
+                }
             });
             $scope.$apply();
         }, function(err) {
